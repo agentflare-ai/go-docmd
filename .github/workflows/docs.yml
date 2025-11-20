@@ -4,11 +4,9 @@ on:
     push:
         paths:
             - "**"
-            - "!README.md"
     pull_request:
         paths:
             - "**"
-            - "!README.md"
 
 jobs:
     docs:
@@ -23,7 +21,11 @@ jobs:
                   go-version-file: go.mod
 
             - name: Generate README via go-docmd
-              run: go run . -cmd -o README.md .
+              run: go run . -cmd -o generated-README.md .
 
-            - name: Ensure README is up to date
-              run: git diff --exit-code README.md
+            - name: Check if README is up to date
+              run: |
+                if ! git diff --exit-code README.md generated-README.md; then
+                  echo "::error::README.md is not up to date. Please run 'go run . -cmd -o README.md .' and commit the changes."
+                  exit 1
+                fi
