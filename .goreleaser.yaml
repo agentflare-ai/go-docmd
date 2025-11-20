@@ -1,0 +1,91 @@
+version: 2
+
+before:
+  hooks:
+    - go run . -cmd -o README.md .
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: go-docmd
+    binary: go-docmd
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: go-docmd
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^feat:'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^fix:'
+      order: 1
+    - title: Performance
+      regexp: '^perf:'
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: agentflare-ai
+    name: go-docmd
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## go-docmd Release {{ .Version }}
+
+    A companion to `go doc` that renders package and symbol documentation as Markdown.
+
+    ### Installation
+
+    Download the appropriate binary for your platform from the assets below, or install via Go:
+
+    ```bash
+    go install github.com/agentflare-ai/go-docmd@{{ .Tag }}
+    ```
+
+    ### What's Changed
+  footer: |
+    **Full Changelog**: https://github.com/agentflare-ai/go-docmd/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ## Usage
+
+    ```
+    go-docmd [flags] [package|[package.]symbol[.method]]
+    ```
+
+    See the [README](https://github.com/agentflare-ai/go-docmd#readme) for detailed documentation.

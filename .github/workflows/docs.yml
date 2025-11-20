@@ -1,0 +1,30 @@
+name: go-docmd Docs
+
+on:
+    push:
+        paths:
+            - "go-docmd/**"
+    pull_request:
+        paths:
+            - "go-docmd/**"
+
+jobs:
+    docs:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: go-docmd
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go-docmd/go.mod
+
+            - name: Generate README via go-docmd
+              run: go run . -cmd -o README.md .
+
+            - name: Ensure README is up to date
+              run: git diff --exit-code README.md
